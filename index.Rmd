@@ -1,24 +1,59 @@
 ---
-title       : 
-subtitle    : 
-author      : 
-job         : 
-framework   : io2012        # {io2012, html5slides, shower, dzslides, ...}
-highlighter : highlight.js  # {highlight.js, prettify, highlight}
-hitheme     : tomorrow      # 
-widgets     : []            # {mathjax, quiz, bootstrap}
-mode        : selfcontained # {standalone, draft}
+title       : Human Activity Recognition
+subtitle    : Course project for JHU Practical Machine Learning
+author      : WANG, Yihong
 ---
 
-## Read-And-Delete
+## Data processing
 
-1. Edit YAML front matter
-2. Write using R Markdown
-3. Use an empty line followed by three dashes to separate slides!
 
---- .class #id 
 
-## Slide 2
+```{r,message=FALSE}
+setwd("..")
+library(caret)
+train = read.csv("train.csv")
+test = read.csv("test.csv")
+```
+Remove the variables that have missing data
+```{r}
+blank = sapply(train, function(x) sum(x==""))
+train = train[,which(blank==0)]
+NAs = sapply(train, function(x) sum(is.na(x)))
+train = train[,which(NAs==0)]
+```
+remove the first 7 columns since they do not contain sensor information
+
+```{r}
+train = train[,c(-1:-7)]
+col_keep = c(colnames(train),"problem_id")
+test = test[,names(test) %in% col_keep]
+```
+
+##Training
+
+I use random forest model for training and choose train 25% of train sample to save 
+running time and use left 75% of train sample for cross validation.
+```{r,cache=TRUE,message=FALSE}
+inTrain = createDataPartition(y=train$classe,
+                               p=0.25, list=FALSE)
+train_sub = train[inTrain,]
+test_sub = train[-inTrain,]
+modelFit1 = train(classe ~ ., method="rf", 
+                   trControl = trainControl(method = "cv", number = 4),data=train_sub)
+print(modelFit1,digits = 3)
+```
+
+Since the model accuracy at best is 0.97, I expect the out of sample accuracy to be around 0.97
+
+##Predicting
+```{r}
+pred = predict(modelFit1,test_sub)
+confusionMatrix(pred, test_sub$classe)
+```
+It looks good. Now let's use the model to predict test sample.
+```{r}
+predict(modelFit1,test)
+```
 
 
 
