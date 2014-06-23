@@ -46,11 +46,12 @@ print(modelFit1,digits = 3)
 Since the model accuracy at best is 0.97, I expect the out of sample accuracy to be around 0.97
 
 ##Predicting
-```{r}
+```{r,message=FALSE}
 pred = predict(modelFit1,test_sub)
-confusionMatrix(pred, test_sub$classe)
+cm = confusionMatrix(pred, test_sub$classe)
+print(cm)
 ```
-It looks good. Now let's use the model to predict test sample.
+It looks good.**Out of Sample Error** is `r 1-cm$overall[1]`. Now let's use the model to predict test sample.
 ```{r}
 predict(modelFit1,test)
 ```
